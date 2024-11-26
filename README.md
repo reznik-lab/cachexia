@@ -15,7 +15,7 @@ The following data formats:
   - `MRN` (Medical Record Number): Must correspond to the MRNs in the BMI data file.
   - `Tumor Diagnosis Date`: Date of diagnosis, used to calculate the days since diagnosis.
 
-## Features
+## Identification of cachectic episodes
 ### `load_data.py` - Data Processing
 Clean and prepare BMI data through various functions:
 
@@ -42,10 +42,13 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
 ### `cac_qc.py`- Quality Control
 
 - **`quality_control(episodes_file, output_path)`**:
-  - Processes identified episodes to ensure each meets minimum duration (>15 days) and significance of weight loss (>2%).
+  - Processes identified episodes to ensure each meets minimum duration (>=30 days), significance of weight loss (>5%) and start day after the tumor diagnosis (start_day>0).
 
 ### `main.py` - Execution Script
 
-### `univariate_mutation.py` - Competing risk model
+## Tumor genotype v.s. Cachexia
+### `univariate_mutation.py` - Univariate competing risk model: CIF vs mutation
+We used competing risk models to calculate the cumulative incidence of cachexia over time since tumor diagnosis, while properly accounting for death as a competing event. 
+For each cancer type with more than 200 patients, we evaluated the statistical association between tumor genotypes and cachexia by modeling the incidence of cachexia episodes following tumor diagnosis as a function of oncogenic mutations with a mutation frequency greater than 5%.
 
   

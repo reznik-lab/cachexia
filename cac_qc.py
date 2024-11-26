@@ -14,11 +14,12 @@ def quality_control(episodes_file, output_path):
     episode_summary = pd.merge(all_patients, episode_counts, on='MRN', how='left').fillna(0)
     episode_summary['episode_count'] = episode_summary['episode_count'].astype(int)
     
-    #Filter/ QC for duration and weight loss
+    #Filter/ QC for duration, weight loss and episode start day (It needs to be after the tumor diagnosis.)
     valid_episodes['episode_duration'] = (valid_episodes['end_day'] - valid_episodes['start_day']).astype(int)
-    valid_episodes = valid_episodes[valid_episodes['episode_duration'] >= 15]
+    valid_episodes = valid_episodes[valid_episodes['episode_duration'] >= 30]
     valid_episodes['weight_loss'] = (valid_episodes['start_bmi'] - valid_episodes['end_bmi']) / valid_episodes['start_bmi'] * 100
-    valid_episodes = valid_episodes[valid_episodes['weight_loss'] >= 2]
+    valid_episodes = valid_episodes[valid_episodes['weight_loss'] > 5]
+    valid_episodes = valid_episodes[valid_episodes['start_day'] > 0]
 
     valid_episodes_file = f'{output_path}/valid_cachexia_episodes_filtered.csv'
     episode_summary_file = f'{output_path}/episode_summary.csv'

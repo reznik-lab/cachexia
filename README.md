@@ -48,7 +48,7 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
 
 ## Tumor genotype v.s. Cachexia
 ### `univariate_mutation.py` - Univariate competing risk model: CIF vs mutation
-We used competing risk models to calculate the cumulative incidence of cachexia over time since tumor diagnosis, while properly accounting for death as a competing event. 
-For each cancer type with more than 200 patients, we evaluated the statistical association between tumor genotypes and cachexia by modeling the incidence of cachexia episodes following tumor diagnosis as a function of oncogenic mutations with a mutation frequency greater than 5%.
+- We used competing risk models to calculate the cumulative incidence of cachexia over time since tumor diagnosis, while properly accounting for death as a competing event. 
+- For each cancer type with more than 200 patients, we evaluated the statistical association between tumor genotypes and cachexia by modeling the incidence of cachexia episodes following tumor diagnosis as a function of oncogenic mutations with a mutation frequency greater than 5%.
 
   

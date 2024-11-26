@@ -46,4 +46,6 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
 
 ### `main.py` - Execution Script
 
+### `univariate_mutation.py` - Competing risk model
+
   

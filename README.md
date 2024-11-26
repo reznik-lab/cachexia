@@ -21,11 +21,11 @@ Clean and prepare BMI data through various functions:
 
 - **`load_and_process_bmi_data(bmi_path, metadata_path)`**:
   - Standardizes data by days since diagnosis.
-  - Filters out BMI outliers (BMI < 10 and BMI > 70).
+  - Filters out BMI outliers (BMI < 10 and BMI > 100).
   - Excludes patients with trajectories less than 180 days.
 
 - **`smooth_bmi_ewma(df, smooth_col, alpha)`**:
-  - Smooths data using Exponentially Weighted Moving Average (EWMA) where `alpha` is the smoothing factor.
+  - Smooths data using Exponentially Weighted Moving Average (EWMA) where `alpha` is the smoothing factor. We used a default alpha of 0.2.
 
 ### `cachexia_identification.py` - Episode Identification
 Detect cachexia episodes based on a defined threshold of BMI loss over time:
@@ -42,7 +42,7 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
 ### `cac_qc.py`- Quality Control
 
 - **`quality_control(episodes_file, output_path)`**:
-  - Processes identified episodes to ensure each meets minimum duration (<15 days) and significance of weight loss (<2%).
+  - Processes identified episodes to ensure each meets minimum duration (>15 days) and significance of weight loss (>2%).
 
 ### `main.py` - Execution Script
 

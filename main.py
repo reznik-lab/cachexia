@@ -1,5 +1,3 @@
-
-
 import os
 import sys
 
@@ -21,7 +19,7 @@ from lifelines import CoxPHFitter
 from load_data import load_and_process_bmi_data, smooth_bmi_ewma
 from cachexia_identification import identify_cachexia_episodes, identify_recovery_episodes, merge_episodes
 from cac_qc import quality_control
-from mutation_test import define_events, univariate_mutation_test, multivariate_mutation_test
+from competing_risk_genotype_test import define_competing_events, univariate_mutation_test, multivariate_mutation_test
 
 bmi_data_path = '/Users/castilv/Documents/Cachexia/cac_data/bmi_upd.csv'
 metadata_path = '/Users/castilv/Documents/Cachexia/cac_data/clean_metadata/metadata_clin_0930.csv'
@@ -57,7 +55,7 @@ def main():
     for gene in mutation.columns[1:]:
         mutation.loc[mutation[gene] > 1, gene] = 1
 
-    cachexia_data = define_events(df_episodes_all, valid_episodes, mutation, metadata, results_dir)
+    cachexia_data = define_competing_events(df_episodes_all, valid_episodes, mutation, metadata, results_dir)
     cox_df_uni = univariate_mutation_test(cachexia_data, mutation, results_dir)
     cox_df_multi = multivariate_mutation_test(cachexia_data, mutation, results_dir)
 

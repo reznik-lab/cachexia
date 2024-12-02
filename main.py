@@ -46,10 +46,8 @@ def main():
     df_episodes_all.to_csv(episodes_file, index=False)
     print("Analysis complete. Processed episodes saved to:", episodes_file)
 
-    
-    qc_results = quality_control(episodes_file, output_path)
     qc_results_file = output_path + 'quality_control_results.csv'
-    qc_results.to_csv(qc_results_file, index=False)
+    valid_episodes = quality_control(episodes_file, qc_results_file)
 
 if __name__ == "__main__":
     main()

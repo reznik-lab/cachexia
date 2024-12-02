@@ -29,8 +29,9 @@ def quality_control(episodes_file, output_path):
     
     print(f"Total valid episodes after filtering: {valid_episodes.shape[0]}")
     print("Analysis complete. Files saved to:", output_path)
+    return valid_episodes
 
 if __name__ == "__main__":
     episodes_file = '/path/to/episodes_data.csv'
     output_path = '/path/to/output_directory'
-    quality_control(episodes_file, output_path)
+    valid_episodes = quality_control(episodes_file, output_path)

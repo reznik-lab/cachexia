@@ -47,8 +47,23 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
 ### `main.py` - Execution Script
 
 ## Tumor genotype v.s. Cachexia
-### `univariate_mutation.py` - Univariate competing risk model: CIF vs mutation
+### `competing_risk_genotype_test.py` - Competing risk model: CIF of cachexia vs mutation
 - We used competing risk models to calculate the cumulative incidence of cachexia over time since tumor diagnosis, while properly accounting for death as a competing event. 
 - For each cancer type with more than 200 patients, we evaluated the statistical association between tumor genotypes and cachexia by modeling the incidence of cachexia episodes following tumor diagnosis as a function of oncogenic mutations with a mutation frequency greater than 5%.
+  
+- **`define_competing_events(df_episodes_all, valid_episodes, mutation, metadata, results_dir)`**:
+  - Define the cachexia event and time_to_cachexia (time from the tumor diagnosis date to the first cachexia episode).
+  - Then merge with metadata to get os_days and os_event (death as competing risk).
+
+- **`univariate_mutation_test(cachexia_data, mutation, results_dir)`**:
+  - For each gene in the 341 oncogenic gene panel with a mutation frequency > 5%, we test:
+        time_to_cachexia ~ mutation in each detailed_cancer_type.
+
+- **`multivariate_mutation_test(cachexia_data, mutation, results_dir)`**:
+    - For each gene in the 341 oncogenic gene panel with a mutation frequency > 5%, we test:
+        time_to_cachexia ~ mutation + age_at_diagnosis + GENDER + genetic ancestry + SAMPLE_TYPE + CVR_TMB_SCORE + pathologic stage.
+    - genetic ancestry (EUR, AMR, AFR, EAS, SAS), SAMPLE_TYPE (primary or metastasis)
+    - You may need to update the source code of this function according to the feature names you have.
+      
 
   

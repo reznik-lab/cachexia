@@ -120,9 +120,8 @@ def multivariate_mutation_test(cachexia_data, mutation, results_dir):
                 cox_df.loc[f'{cancer_type}_{gene}'] = cph.summary.iloc[0, :]
                 cox_df.loc[f'{cancer_type}_{gene}', 'detailed_cancer_type'] = cancer_type
                 cox_df.loc[f'{cancer_type}_{gene}', 'mutation'] = gene
-
-    cox_df['p_adj'] = multipletests(cox_df['p'], method='fdr_bh')[1]
     cox_df.to_csv(f'{results_dir}/mutation_cox_cachexia_results_multivariate.csv')
+    # Don't need to adjust p values, because we want to see the post-hoc hits that overlap with univariate results.
     return cox_df
 
 

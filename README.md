@@ -14,6 +14,19 @@ The following data formats:
 - **Metadata File (`metadata.csv`)**: Should contain at least the following fields:
   - `MRN` (Medical Record Number): Must correspond to the MRNs in the BMI data file.
   - `Tumor Diagnosis Date`: Date of diagnosis, used to calculate the days since diagnosis.
+  - `os_days`: Overall survival in days
+  - `os_event`: A boolean variable indicating if a patient is alive or not
+  Ideally with the following fields for the post-hoc multivariate analysis:
+  - age_at_diagnosis
+  - GENDER
+  - ANCESTRY_LABEL: Genetic ancestry (AFR, NAM, EUR, SAS,EAS)
+  - SAMPLE_TYPE: Primary or Metastasis
+  - CVR_TMB_SCORE: Tumor mutation burden
+  - STAGE_CDM_DERIVED_GRANULAR: Pathological stage
+
+
+- **Mutation File (`mutation.csv`)**: 
+  - sample by gene matrix
 
 ## Identification of cachectic episodes
 ### `load_data.py` - Data Processing

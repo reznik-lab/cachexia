@@ -23,7 +23,7 @@ from competing_risk_genotype_test import define_competing_events, univariate_mut
 
 bmi_data_path = '/Users/castilv/Documents/Cachexia/cac_data/bmi_upd.csv'
 metadata_path = '/Users/castilv/Documents/Cachexia/cac_data/clean_metadata/metadata_clin_0930.csv'
-mutation_path = '/Users/xiea1/cachexia/data/raw_data/IMPACT_Oncogenic_Table_0919_2024.csv'
+mutation_path = '/Users/xiea1/cachexia/data/raw_data/mutation.csv'
 output_path = '/Users/castilv/Documents/Cachexia/cac_data/output/'
 
 def main():

@@ -17,12 +17,12 @@ The following data formats:
   - `os_days`: Overall survival in days
   - `os_event`: A boolean variable indicating if a patient is alive or not
   Ideally with the following fields for the post-hoc multivariate analysis:
-  - age_at_diagnosis
-  - GENDER
-  - ANCESTRY_LABEL: Genetic ancestry (AFR, NAM, EUR, SAS,EAS)
-  - SAMPLE_TYPE: Primary or Metastasis
-  - CVR_TMB_SCORE: Tumor mutation burden
-  - STAGE_CDM_DERIVED_GRANULAR: Pathological stage
+  - `age_at_diagnosis`
+  - `GENDER`
+  - `ANCESTRY_LABEL`: Genetic ancestry (AFR, NAM, EUR, SAS,EAS)
+  - `SAMPLE_TYPE`: Primary or Metastasis
+  - `CVR_TMB_SCORE`: Tumor mutation burden
+  - `STAGE_CDM_DERIVED_GRANULAR`: Pathological stage
 
 
 - **Mutation File (`mutation.csv`)**: 

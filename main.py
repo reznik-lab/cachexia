@@ -55,9 +55,9 @@ def main():
     for gene in mutation.columns[1:]:
         mutation.loc[mutation[gene] > 1, gene] = 1
 
-    cachexia_data = define_competing_events(df_episodes_all, valid_episodes, mutation, metadata, results_dir)
-    cox_df_uni = univariate_mutation_test(cachexia_data, mutation, results_dir)
-    cox_df_multi = multivariate_mutation_test(cachexia_data, mutation, results_dir)
+    cachexia_data = define_competing_events(df_episodes_all, valid_episodes, mutation, metadata, output_path)
+    cox_df_uni = univariate_mutation_test(cachexia_data, mutation, output_path)
+    cox_df_multi = multivariate_mutation_test(cachexia_data, mutation, output_path)
 
 if __name__ == "__main__":
     main()

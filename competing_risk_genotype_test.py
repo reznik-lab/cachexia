@@ -42,6 +42,7 @@ def define_competing_events(df_episodes_all, valid_episodes, mutation, metadata,
     cachexia_data.to_csv(f'{results_dir}/cachexia_data_survival_mutation_0919_30days_15%.csv',
                          index=False)
     return cachexia_data
+    
 def univariate_mutation_test(cachexia_data, mutation, results_dir):
     '''
     For 341 oncogenic genes in each detailed_cancer_type:

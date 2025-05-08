@@ -77,6 +77,21 @@ Detect cachexia episodes based on a defined threshold of BMI loss over time:
         time_to_cachexia ~ mutation + age_at_diagnosis + GENDER + genetic ancestry + SAMPLE_TYPE + CVR_TMB_SCORE + pathologic stage.
     - genetic ancestry (EUR, AMR, AFR, EAS, SAS), SAMPLE_TYPE (primary or metastasis)
     - You may need to update the source code of this function according to the feature names you have.
+ 
+## Build cachexia risk model (nomogram)
+### `nomogram.py` - Cox proportional hazards nomogram model
+- Build a Cox proportional hazards nomogram model to predict the time-dependent risk of developing cancer cachexia (e.g., at 1, 2, and 3 years after diagnosis) using clinical, genomic, and lab data.
+- The model is trained and validated for a specified cancer type (e.g., Colorectal Adenocarcinoma, Lung Adenocarcinoma), and includes performance evaluation via bootstrapped C-index, calibration plots, and time-dependent AUCs.
+
+- Feature Selection:
+  - The variables included in the nomogram should be significant predictors identified from a prior multivariate competing risk model.
+    
+- Application:
+  - To apply the trained nomogram model to new patient data, use the script in `load_nomogram_model.py`.
+  - This script demonstrates two usage options:
+  - Using predict_survival_function() from lifelines package to calculate the survival function
+  - Extract the model coefficients and use the baseline survival function to compute predicted risks at exact time points
+
       
 
   

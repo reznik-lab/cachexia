@@ -1,97 +1,80 @@
-# cachexia
-Episode Identification - BMI Trajectory
+# A health-system-scale, episode-resolved multimodal atlas of cancer cachexia
 
-This project automates the identification of cachexia episodes using BMI data trajectories. It processes patient BMI data, applies smoothing techniques, and identifies episodes of significant BMI decrease, which are indicative of cachexia.
+This repository contains the core analysis code used to construct an episode-resolved cachexia atlas from longitudinal BMI trajectories and to perform downstream multimodal analyses (genomics, serology, and progression overlap). 
 
-## Data Requirements
-The following data formats:
+**Start with:** start with the `walkthrough/` folder. It provides a step-by-step guide to episode detection and the key intermediate files produced by the cachexia identification pipeline.
 
-- **BMI Data File (`bmi_data.csv`)**: Should contain at least the following fields:
-  - `MRN` (Medical Record Number): Unique identifier for patients.
-  - `datetime`: Date of the BMI measurement.
-  - `BMI`: Body Mass Index measurement.
+---
+## Repository
 
-- **Metadata File (`metadata.csv`)**: Should contain at least the following fields:
-  - `MRN` (Medical Record Number): Must correspond to the MRNs in the BMI data file.
-  - `Tumor Diagnosis Date`: Date of diagnosis, used to calculate the days since diagnosis.
-  - `os_days`: Overall survival in days
-  - `os_event`: A boolean variable indicating if a patient is alive or not
-  Ideally with the following fields for the post-hoc multivariate analysis:
-  - `age_at_diagnosis`
-  - `GENDER`
-  - `ANCESTRY_LABEL`: Genetic ancestry (AFR, NAM, EUR, SAS,EAS)
-  - `SAMPLE_TYPE`: Primary or Metastasis
-  - `CVR_TMB_SCORE`: Tumor mutation burden
-  - `STAGE_CDM_DERIVED_GRANULAR`: Pathological stage
+- `walkthrough/`  
+  Step-by-step walkthrough of episode detection and how to reproduce intermediate outputs.  
+  **Start here first.**
+
+- `episode_identification/`  
+  Episode-resolved cachexia detection from longitudinal BMI:
+  EWMA smoothing → 180-day window detection → episode merging → recovery labeling → duration/weight-loss QC → edema QC.
+
+- `genomics/`  
+  Genomic association and prediction models aligned to cachexia time-to-event:
+  univariate Cox → multivariable Cox → prediction risk model (calibration + time-dependent AUC).
+
+- `serology/`  
+  Serologic signatures aligned to cachexia windows, including sensitivity analyses.
+
+- `progression/`  
+  Progression alignment and overlap analyses 
+---
 
 
-- **Mutation File (`mutation.csv`)**: 
-  - sample by gene matrix
+## Data requirements
 
-## Identification of cachectic episodes
-### `load_data.py` - Data Processing
-Clean and prepare BMI data through various functions:
+Input files are not included in the repository.
+At minimum, analyses assume the availability of:
 
-- **`load_and_process_bmi_data(bmi_path, metadata_path)`**:
-  - Standardizes data by days since diagnosis.
-  - Filters out BMI outliers (BMI < 10 and BMI > 100).
-  - Excludes patients with trajectories less than 180 days.
+### Longitudinal BMI table
+A table of BMI measurements over time per patient, including:
+- patient identifier (e.g., `MRN`)
+- measurement datetime (`datetime`)
+- BMI value (`bmi`)
+- anchor date used to standardize time (e.g., diagnosis/anchor date)
 
-- **`smooth_bmi_ewma(df, smooth_col, alpha)`**:
-  - Smooths data using Exponentially Weighted Moving Average (EWMA) where `alpha` is the smoothing factor. We used a default alpha of 0.2.
+### Cohort metadata table
+A patient-level metadata table including:
+- patient identifier (e.g., `MRN`)
+- anchor date (e.g., `anchor_final` or `Tumor Diagnosis Date`)
+- cancer type label (e.g., `CANCER_TYPE_DETAILED`)
+- other clinical covariates depending on the analysis module (e.g., stage, sex, etc.)
 
-### `cachexia_identification.py` - Episode Identification
-Detect cachexia episodes based on a defined threshold of BMI loss over time:
+### Additional modality-specific tables
+Depending on the module:
+- mutation table keyed to a genomics identifier (e.g., `DMP_ID`) for `genomics/`
+- longitudinal lab values for `serology/`
+- progression timepoints/labels for `progression/`
 
-- **`identify_cachexia_episodes(df, time_col, bmi_col, recovery=True)`**:
-  - Uses a sliding window to identify cachectic episodes.
-  - Identifies start, onset, and end of each episode.
+Each subfolder contains a module-specific README describing exact expected inputs/columns and produced outputs.
+---
 
-- **`identify_recovery_episodes(patient_data, merged_episodes_df, time_col, bmi_col)`**:
-  - Identifies potential recoveries with a 5% increase in BMI if applicable.
 
-- **`merge_episodes(df, start_col, end_col)`**:
-  - Merges overlapping episodes to streamline episode data.
-### `cac_qc.py`- Quality Control
+## Outputs 
+- **Episode detection outputs (`episode_identification/`):**
+  - smoothed BMI trajectories
+  - episode tables per threshold (WL5/WL10/WL15)
+  - QC-filtered episode summaries (patient-level + episode-level)
+  - edema-filtered episode summaries
+  - incidence summary outputs and QC diagnostics
 
-- **`quality_control(episodes_file, output_path)`**:
-  - Processes identified episodes to ensure each meets minimum duration (>=30 days), significance of weight loss (>5%) and start day after the tumor diagnosis (start_day>0).
+- **Genomics outputs (`genomics/`):**
+  - univariate per-cancer Cox results across genes
+  - multivariable per-cancer Cox models including clinical covariates
+  - nomogram-style evaluation plots (calibration and time-dependent ROC/AUC)
 
-### `main.py` - Execution Script
+- **Serology outputs (`serology/`):**
+  - cachexia-aligned lab models and summary tables
+  - sensitivity analyses across detection parameters and cachexia definitions
 
-## Tumor genotype v.s. Cachexia
-### `competing_risk_genotype_test.py` - Competing risk model: CIF of cachexia vs mutation
-- We used competing risk models to calculate the cumulative incidence of cachexia over time since tumor diagnosis, while properly accounting for death as a competing event. 
-- For each cancer type with more than 200 patients, we evaluated the statistical association between tumor genotypes and cachexia by modeling the incidence of cachexia episodes following tumor diagnosis as a function of oncogenic mutations with a mutation frequency greater than 5%.
-  
-- **`define_competing_events(df_episodes_all, valid_episodes, mutation, metadata, results_dir)`**:
-  - Define the cachexia event and time_to_cachexia (time from the tumor diagnosis date to the first cachexia episode).
-  - Then merge with metadata to get os_days and os_event (death as competing risk).
+- **Progression outputs (`progression/`):**
+  - cachexia–progression overlap summaries
+  - stage-stratified and sensitivity analyses where relevant
 
-- **`univariate_mutation_test(cachexia_data, mutation, results_dir)`**:
-  - For each gene in the 341 oncogenic gene panel with a mutation frequency > 5%, we test:
-        time_to_cachexia ~ mutation in each detailed_cancer_type.
-
-- **`multivariate_mutation_test(cachexia_data, mutation, results_dir)`**:
-    - For each gene in the 341 oncogenic gene panel with a mutation frequency > 5%, we test:
-        time_to_cachexia ~ mutation + age_at_diagnosis + GENDER + genetic ancestry + SAMPLE_TYPE + CVR_TMB_SCORE + pathologic stage.
-    - genetic ancestry (EUR, AMR, AFR, EAS, SAS), SAMPLE_TYPE (primary or metastasis)
-    - You may need to update the source code of this function according to the feature names you have.
- 
-## Build cachexia risk model (nomogram)
-### `nomogram.py` - Cox proportional hazards nomogram model
-- Build a Cox proportional hazards nomogram model to predict the time-dependent risk of developing cancer cachexia (e.g., at 1, 2, and 3 years after diagnosis) using clinical, genomic, and lab data.
-- The model is trained and validated for a specified cancer type (e.g., Colorectal Adenocarcinoma, Lung Adenocarcinoma), and includes performance evaluation via bootstrapped C-index, calibration plots, and time-dependent AUCs.
-
-- Feature Selection:
-  - The variables included in the nomogram should be significant predictors identified from a prior multivariate competing risk model.
-    
-- Application:
-  - To apply the trained nomogram model to new patient data, use the script in `load_nomogram_model.py`.
-  - This script demonstrates two usage options:
-  - Using predict_survival_function() from lifelines package to calculate the survival function
-  - Extract the model coefficients and use the baseline survival function to compute predicted risks at exact time points
-
-      
-
-  
+---

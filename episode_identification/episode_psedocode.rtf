@@ -1,0 +1,228 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww26540\viewh14880\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 PSEUDOCODE \'97 Cachexia episode identification + merging + recovery + valid-episode QC + edema QC\
+\
+INPUTS (per patient)\
+  Observations sorted by time:\
+    t[j]  = days_since_anchor (integer days)\
+    s[j]  = smoothed_BMI(t[j])            # EWMA-smoothed BMI (linear space)\
+    x[j]  = log_smoothed_BMI(t[j])        # x[j] = log(s[j])\
+\
+PARAMETERS\
+  Episode detection:\
+    WL_window_days = 180\
+    wl_frac \uc0\u8712  \{0.05, 0.10, 0.15\}\
+    bmi20_rule (boolean)\
+    wl_lowbmi_frac = 0.02\
+\
+  Recovery:\
+    recovery_gain_frac = 0.05\
+    (optional) require_sustained_recovery (boolean)\
+    (optional) sustain_days = K\
+\
+  Valid-episode (non-edema) QC:\
+    min_dur_days\
+    min_wl_pct                       # computed on smoothed BMI start\uc0\u8594 end\
+\
+  Edema QC (log space):\
+    edema_window_days\
+    edema_up_frac\
+    edema_return_frac\
+\
+GLOBAL OUTPUTS\
+  - precomp episodes per patient (merged + recovery)\
+  - valid episodes after non-edema QC\
+  - edema windows per patient\
+  - valid episodes after edema QC (episodes overlapping edema windows removed)\
+  - patient-level denominator-preserving summary tables (optional)\
+\
+DEFINITIONS\
+  Sliding-window step size:\
+    step = 1 observation (evaluate each recorded measurement as a candidate start).\
+    Not daily stepping.\
+\
+--------------------------------------------------------------------------------\
+A) DETECT CANDIDATE EPISODES \
+--------------------------------------------------------------------------------\
+candidates = empty list\
+\
+FOR i in 1..N:                              # step = one observation\
+  t0 = t[i]\
+  baseline_log = x[i]\
+  baseline_smoothed = s[i]\
+\
+  IF bmi20_rule AND baseline_smoothed < 20:\
+      wl_log = log(1 - wl_lowbmi_frac)      # log(0.98)\
+  ELSE:\
+      wl_log = log(1 - wl_frac)             # e.g., log(0.95)\
+\
+  window = all indices j such that:\
+             t[j] > t0 AND t[j] <= t0 + WL_window_days\
+\
+  hits = subset of window where:\
+             x[j] < baseline_log + wl_log\
+\
+  IF hits is empty:\
+      CONTINUE\
+\
+  onset_day = MIN t[j] over hits\
+  end_day   = MAX t[j] over hits\
+\
+  APPEND candidate episode:\
+      start_day = t0\
+      onset_day = onset_day\
+      end_day   = end_day\
+      start_bmi_smoothed = s[i]\
+      end_bmi_smoothed   = s[index_of(end_day)]\
+to candidates\
+\
+IF candidates empty:\
+  RETURN no-episode record (all NA) for this patient\
+\
+--------------------------------------------------------------------------------\
+B) MERGE OVERLAPPING EPISODES\
+--------------------------------------------------------------------------------\
+SORT candidates by start_day ascending\
+\
+merged = empty list\
+current = candidates[1]\
+\
+FOR each candidate e in candidates[2..]:\
+  IF e.start_day <= current.end_day:\
+      current.end_day = max(current.end_day, e.end_day)\
+\
+      # Onset merging rule:\
+      # keep earliest onset among merged set\
+      current.onset_day = min(current.onset_day, e.onset_day)\
+\
+      # (optional) update end_bmi_smoothed to value at the updated end_day\
+      current.end_bmi_smoothed = s[index_of(current.end_day)]\
+  ELSE:\
+      APPEND current to merged\
+      current = e\
+\
+APPEND current to merged\
+\
+--------------------------------------------------------------------------------\
+C) RECOVERY DETECTION \
+--------------------------------------------------------------------------------\
+FOR k in 1..len(merged):\
+  ep = merged[k]\
+\
+  rec_start = ep.end_day\
+  rec_end   = merged[k+1].start_day if k < len(merged) else t[N]\
+\
+  # robust end baseline: first observation at/after ep.end_day\
+  end_idx = first index j such that t[j] >= rec_start\
+  IF end_idx does not exist:\
+      ep.recovery_day = NA\
+      CONTINUE\
+\
+  end_log = x[end_idx]\
+  rec_thresh = end_log + log(1 + recovery_gain_frac)\
+\
+  eligible = all indices j such that:\
+               t[j] >= rec_start AND t[j] <= rec_end AND x[j] >= rec_thresh\
+\
+  IF eligible empty:\
+      ep.recovery_day = NA\
+      CONTINUE\
+\
+  candidate_rec_day = MIN t[j] over eligible\
+\
+  IF require_sustained_recovery == FALSE:\
+      ep.recovery_day = candidate_rec_day\
+  ELSE:\
+      # sustained rule example (time-based):\
+      # remain above threshold for K days (using available observations)\
+      sustain_ok = TRUE\
+      FOR each index j where t[j] in [candidate_rec_day, candidate_rec_day + K]:\
+          IF x[j] < rec_thresh: sustain_ok = FALSE\
+      ep.recovery_day = candidate_rec_day if sustain_ok else NA\
+\
+RETURN merged episodes with recovery_day (this is the PRECOMP episode table)\
+\
+--------------------------------------------------------------------------------\
+D) VALID EPISODES \
+--------------------------------------------------------------------------------\
+valid = empty list\
+\
+FOR each merged episode ep:\
+  # duration QC\
+  duration_days = ep.end_day - ep.start_day\
+  IF duration_days < min_dur_days:\
+      CONTINUE\
+\
+  # weight-loss QC (use smoothed BMI to match detector)\
+  wl_pct = (ep.start_bmi_smoothed - ep.end_bmi_smoothed) / ep.start_bmi_smoothed * 100\
+  IF wl_pct < min_wl_pct:\
+      CONTINUE\
+\
+  APPEND ep to valid\
+\
+# valid is the "valid episodes only" table after non-edema QC\
+\
+--------------------------------------------------------------------------------\
+E) EDEMA WINDOW IDENTIFICATION \
+--------------------------------------------------------------------------------\
+# Detect reversible *increases* in log-smoothed BMI within edema_window_days:\
+# baseline -> rises by >= log(1+edema_up_frac) -> returns to <= log(1+edema_return_frac)\
+\
+edema_windows = empty list\
+\
+up_log  = log(1 + edema_up_frac)\
+ret_log = log(1 + edema_return_frac)\
+\
+FOR i in 1..N-2:\
+  baseline_day = t[i]\
+  baseline_log = x[i]\
+  t_end = baseline_day + edema_window_days\
+\
+  window = all indices j such that t[j] > baseline_day AND t[j] <= t_end\
+  IF window empty: CONTINUE\
+\
+  # first \'93up\'94 event\
+  peak_candidates = indices j in window where x[j] >= baseline_log + up_log\
+  IF peak_candidates empty: CONTINUE\
+  peak_j = first index in peak_candidates (earliest time)\
+\
+  # first \'93return\'94 after peak\
+  return_candidates = indices r after peak_j within window where x[r] <= baseline_log + ret_log\
+  IF return_candidates empty: CONTINUE\
+  end_r = first index in return_candidates\
+\
+  RECORD edema window:\
+      ed_start_day = baseline_day\
+      ed_end_day   = t[end_r]\
+  APPEND to edema_windows\
+\
+# Merge overlapping edema windows\
+SORT edema_windows by ed_start_day\
+merged_edema = interval-union merge:\
+  current = first window\
+  FOR each next window w:\
+    IF w.ed_start_day <= current.ed_end_day:\
+        current.ed_end_day = max(current.ed_end_day, w.ed_end_day)\
+    ELSE:\
+        emit current; current = w\
+  emit current\
+\
+--------------------------------------------------------------------------------\
+F) APPLY EDEMA QC TO VALID EPISODES\
+--------------------------------------------------------------------------------\
+valid_no_edema = empty list\
+\
+FOR each valid episode ep:\
+  overlap = FALSE\
+  FOR each edema window ew in merged_edema:\
+     IF ew.ed_start_day <= ep.end_day AND ew.ed_end_day >= ep.start_day:\
+         overlap = TRUE\
+         BREAK\
+  IF overlap == FALSE:\
+     APPEND ep to valid_no_edema\
+}

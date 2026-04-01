@@ -21,7 +21,7 @@ from datetime import datetime
 import os
 import pandas as pd
 
-BASE_REV   = "/Users/castilv/Documents/cachexia_revision"
+BASE_REV   = "/Users/XX/Documents/cachexia_revision"
 REV_INPUTS = os.path.join(BASE_REV, "rev_inputs")
 DATE_STAMP = "20260126"
 
@@ -42,7 +42,6 @@ dx_final["anchor_final"] = pd.to_datetime(dx_final["anchor_final"], errors="coer
 bmi_final["datetime"]    = pd.to_datetime(bmi_final["datetime"], errors="coerce")
 bmi_final["bmi"]         = pd.to_numeric(bmi_final["bmi"], errors="coerce")
 bmi_final["anchor_final"] = pd.to_datetime(bmi_final["anchor_final"], errors="coerce")
-
 
 
 bmi_ts = bmi_final.dropna(subset=["MRN", "datetime", "bmi", "anchor_final"]).copy()

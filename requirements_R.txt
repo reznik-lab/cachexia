@@ -1,0 +1,37 @@
+# R package dependencies for the 0706_ccx_revision analysis pipeline
+# (episode detection, labs/GLMM, genomics/Cox, nomogram, all figure_panel scripts)
+#
+# Install with:
+#   Rscript -e 'pkgs <- grep("^#|^$", readLines("requirements_R.txt"), value=TRUE, invert=TRUE); install.packages(pkgs, repos="https://cloud.r-project.org")'
+
+# --- Core data handling ---
+data.table
+dplyr
+tidyr
+forcats
+stringr
+lubridate
+
+# --- Reading input files ---
+readr
+readxl
+
+# --- Plotting ---
+ggplot2
+ggrepel
+ggpubr
+patchwork
+scales
+showtext
+
+# --- Statistical / survival models ---
+lme4
+mgcv
+survival
+survminer
+dtwclust
+
+# --- Parallelization (per-cancer-type GLMM sensitivity runs) ---
+future
+future.apply
+progressr

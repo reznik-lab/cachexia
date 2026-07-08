@@ -1,4 +1,4 @@
-# R package dependencies for the 0706_ccx_revision analysis pipeline
+# R package dependencies 
 # (episode detection, labs/GLMM, genomics/Cox, nomogram, all figure_panel scripts)
 #
 # Install with:
@@ -31,7 +31,7 @@ survival
 survminer
 dtwclust
 
-# --- Parallelization (per-cancer-type GLMM sensitivity runs) ---
+# --- Parallel ---
 future
 future.apply
 progressr

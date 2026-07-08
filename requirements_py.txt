@@ -1,0 +1,23 @@
+# Python dependencies 
+
+# Install with: pip install -r requirements.txt
+
+# --- Core data handling ---
+pandas==2.3.3
+numpy==2.4.4
+scipy==1.18.0
+
+# --- Survival analysis (Cox models, concordance, time-dependent AUC) ---
+lifelines==0.30.3
+scikit-survival==0.28.0
+
+# --- General stats ---
+scikit-learn==1.9.0
+statsmodels==0.14.6
+
+# --- Plotting ---
+matplotlib==3.11.0
+seaborn==0.13.2
+
+# --- for long-running loops (bootstraps, per-cancer-type fits) ---
+tqdm==4.67.3
